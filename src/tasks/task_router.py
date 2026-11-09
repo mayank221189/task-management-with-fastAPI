@@ -5,16 +5,21 @@ from sqlalchemy.orm import Session
 
 from src.tasks import task_controller
 from src.tasks.task_dtos import TaskResponseSchema, TaskSchemaDTO
+from src.user.user_models import User
 from src.utils.db import get_db
+from src.utils.helpers import is_authenticated
 
 task_router = APIRouter(prefix="/tasks")
 DbSession = Annotated[Session, Depends(get_db)]
+AuthenticatedUser = Annotated[User, Depends(is_authenticated)]
 
 
 @task_router.post(
     "/create", response_model=TaskResponseSchema, status_code=status.HTTP_201_CREATED
 )
-def create_task_endpoint(requestBody: TaskSchemaDTO, db: DbSession):
+def create_task_endpoint(
+    requestBody: TaskSchemaDTO, db: DbSession, user: AuthenticatedUser
+):
     return task_controller.create_task(requestBody, db)
 
 
@@ -23,7 +28,7 @@ def create_task_endpoint(requestBody: TaskSchemaDTO, db: DbSession):
     response_model=list[TaskResponseSchema],
     status_code=status.HTTP_200_OK,
 )
-def get_all_tasks_endpoint(db: DbSession):
+def get_all_tasks_endpoint(db: DbSession, user: AuthenticatedUser):
     return task_controller.get_all_tasks(db)
 
 
@@ -32,15 +37,17 @@ def get_all_tasks_endpoint(db: DbSession):
     response_model=TaskResponseSchema,
     status_code=status.HTTP_200_OK,
 )
-def get_task_by_id_endpoint(task_id: int, db: DbSession):
+def get_task_by_id_endpoint(task_id: int, db: DbSession, user: AuthenticatedUser):
     return task_controller.get_task_by_id(task_id, db)
 
 
 @task_router.put("/task/{task_id}", status_code=status.HTTP_200_OK)
-def update_task_endpoint(task_id: int, requestBody: TaskSchemaDTO, db: DbSession):
+def update_task_endpoint(
+    task_id: int, requestBody: TaskSchemaDTO, db: DbSession, user: AuthenticatedUser
+):
     return task_controller.update_task(task_id, requestBody, db)
 
 
 @task_router.delete("/task/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task_by_id(task_id: int, db: DbSession):
+def delete_task_by_id(task_id: int, db: DbSession, user: AuthenticatedUser):
     return task_controller.delete_task_by_id(task_id, db)
