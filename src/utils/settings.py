@@ -5,7 +5,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     DB_CONNECTION_STRING: str
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
 
 settings = Settings()  # type: ignore[call-arg]
-print(settings.DB_CONNECTION_STRING)

@@ -2,3 +2,5 @@ fastapi[standard]
 psycopg[binary]
 sqlalchemy
 pydantic
+pyjwt
+pwdlib[argon2]
