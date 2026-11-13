@@ -20,8 +20,8 @@ DbSession = Annotated[Session, Depends(get_db)]
     response_model=UserResponseSchema,
     status_code=status.HTTP_201_CREATED,
 )
-def user_register(user: UserBaseSchema, db: DbSession):
-    return user_controller.register_user(user, db)
+async def user_register(user: UserBaseSchema, db: DbSession):
+    return await user_controller.register_user(user, db)
 
 
 @user_router.post("/login", status_code=status.HTTP_200_OK)

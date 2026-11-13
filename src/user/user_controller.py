@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.user.user_dtos import LoginRequestSchema, UserBaseSchema
 from src.user.user_models import User
+from src.utils.mail import send_email
 from src.utils.settings import settings
 
 password_hash = PasswordHash.recommended()
@@ -21,7 +22,7 @@ def verify_password(plain_password: str, hashed_password: str):
     return password_hash.verify(plain_password, hashed_password)
 
 
-def register_user(user: UserBaseSchema, db: Session) -> dict[str, str]:
+async def register_user(user: UserBaseSchema, db: Session) -> dict[str, str]:
     existing_user_with_email = db.query(User).filter(User.email == user.email).first()
     if existing_user_with_email:
         raise HTTPException(
@@ -45,6 +46,7 @@ def register_user(user: UserBaseSchema, db: Session) -> dict[str, str]:
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    await send_email([cast(str, db_user.email)])
     return db_user
 
 
