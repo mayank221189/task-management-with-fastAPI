@@ -4,3 +4,4 @@ sqlalchemy
 pydantic
 pyjwt
 pwdlib[argon2]
+alembic
