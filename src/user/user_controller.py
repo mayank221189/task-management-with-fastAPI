@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
 import jwt
-from fastapi import HTTPException, Request, status
+from fastapi import BackgroundTasks, HTTPException, Request, status
 from pwdlib import PasswordHash
 from sqlalchemy.orm import Session
 
@@ -22,7 +22,9 @@ def verify_password(plain_password: str, hashed_password: str):
     return password_hash.verify(plain_password, hashed_password)
 
 
-async def register_user(user: UserBaseSchema, db: Session) -> dict[str, str]:
+async def register_user(
+    user: UserBaseSchema, db: Session, background_tasks: BackgroundTasks
+) -> dict[str, str]:
     existing_user_with_email = db.query(User).filter(User.email == user.email).first()
     if existing_user_with_email:
         raise HTTPException(
@@ -46,7 +48,9 @@ async def register_user(user: UserBaseSchema, db: Session) -> dict[str, str]:
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    await send_email([cast(str, db_user.email)], cast(str, db_user.first_name))
+    background_tasks.add_task(
+        send_email, [cast(str, db_user.email)], cast(str, db_user.first_name)
+    )
     return db_user
 
 
