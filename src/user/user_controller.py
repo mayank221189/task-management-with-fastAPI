@@ -46,7 +46,7 @@ async def register_user(user: UserBaseSchema, db: Session) -> dict[str, str]:
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    await send_email([cast(str, db_user.email)])
+    await send_email([cast(str, db_user.email)], cast(str, db_user.first_name))
     return db_user
 
 
