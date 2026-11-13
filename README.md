@@ -23,17 +23,32 @@ A REST API for creating, listing, retrieving, updating, and deleting tasks. It i
 
    ```bash
    uv sync
-   uv pip install "psycopg[binary]"
    ```
 
-   Alternatively, create and activate a virtual environment, then install from `requirements.txt`:
+   This installs Alembic and the PostgreSQL driver along with the other project dependencies. Alternatively, create and activate a virtual environment, then install from `requirements.txt`:
 
    ```bash
    python -m pip install -r requirements.txt
-   python -m pip install "psycopg[binary]"
    ```
 
-   The PostgreSQL driver is installed separately because it is not currently listed in the project's dependency files.
+## Database migrations
+
+Run the checked-in Alembic migrations from the project root to bring the database up to the latest revision:
+
+```bash
+uv run alembic upgrade head
+```
+
+**Before running this on a database with existing data, review the migration.** The currently checked-in revision, `migration/versions/d517663f18bb_add_user_id_to_task.py`, drops the `user_tasks` and `user_table` tables in its upgrade operation.
+
+After changing SQLAlchemy models, generate a migration revision, review the generated file in `migration/versions/`, then apply it:
+
+```bash
+uv run alembic revision --autogenerate -m "describe the schema change"
+uv run alembic upgrade head
+```
+
+If using pip instead of uv, run the same `alembic` commands in the activated virtual environment without the `uv run` prefix. Ensure the `.env` database connection points to the intended database before running migrations.
 
 ## Run
 
@@ -45,7 +60,7 @@ uv run fastapi dev main.py
 
 The API is available at `http://127.0.0.1:8000`. Interactive API documentation is at `http://127.0.0.1:8000/docs`.
 
-The application creates the SQLAlchemy tables when it starts. The database itself must already exist.
+The database itself must already exist. Run Alembic migrations before starting the application to keep the database schema up to date.
 
 ## API
 

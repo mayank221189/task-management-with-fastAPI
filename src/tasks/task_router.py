@@ -20,7 +20,7 @@ AuthenticatedUser = Annotated[User, Depends(is_authenticated)]
 def create_task_endpoint(
     requestBody: TaskSchemaDTO, db: DbSession, user: AuthenticatedUser
 ):
-    return task_controller.create_task(requestBody, db)
+    return task_controller.create_task(requestBody, db, user)
 
 
 @task_router.get(
@@ -29,7 +29,7 @@ def create_task_endpoint(
     status_code=status.HTTP_200_OK,
 )
 def get_all_tasks_endpoint(db: DbSession, user: AuthenticatedUser):
-    return task_controller.get_all_tasks(db)
+    return task_controller.get_all_tasks(db, user)
 
 
 @task_router.get(
@@ -38,16 +38,16 @@ def get_all_tasks_endpoint(db: DbSession, user: AuthenticatedUser):
     status_code=status.HTTP_200_OK,
 )
 def get_task_by_id_endpoint(task_id: int, db: DbSession, user: AuthenticatedUser):
-    return task_controller.get_task_by_id(task_id, db)
+    return task_controller.get_task_by_id(task_id, db, user)
 
 
 @task_router.put("/task/{task_id}", status_code=status.HTTP_200_OK)
 def update_task_endpoint(
     task_id: int, requestBody: TaskSchemaDTO, db: DbSession, user: AuthenticatedUser
 ):
-    return task_controller.update_task(task_id, requestBody, db)
+    return task_controller.update_task(task_id, requestBody, db, user)
 
 
 @task_router.delete("/task/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task_by_id(task_id: int, db: DbSession, user: AuthenticatedUser):
-    return task_controller.delete_task_by_id(task_id, db)
+    return task_controller.delete_task_by_id(task_id, db, user)

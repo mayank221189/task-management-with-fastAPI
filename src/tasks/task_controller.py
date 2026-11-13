@@ -1,11 +1,23 @@
 from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.tasks.task_dtos import TaskSchemaDTO
 from src.tasks.task_models import TaskModel
+from src.user.user_models import User
 
 
-def create_task(requestBody: TaskSchemaDTO, db: Session) -> dict[str, str | TaskModel]:
+def _get_user_task(task_id: int, db: Session, user: User) -> TaskModel | None:
+    statement = select(TaskModel).where(
+        TaskModel.id == task_id,
+        TaskModel.user_id == user.id,
+    )
+    return db.scalars(statement).one_or_none()
+
+
+def create_task(
+    requestBody: TaskSchemaDTO, db: Session, user: User
+) -> dict[str, str | TaskModel]:
     # Implement the logic to create a task
 
     # data = requestBody.model_dump() //convert to dictionary
@@ -14,7 +26,7 @@ def create_task(requestBody: TaskSchemaDTO, db: Session) -> dict[str, str | Task
     # db.commit()
     # db.refresh(db_task)
 
-    db_task = TaskModel(**requestBody.model_dump())
+    db_task = TaskModel(**requestBody.model_dump(), user_id=user.id)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -22,13 +34,13 @@ def create_task(requestBody: TaskSchemaDTO, db: Session) -> dict[str, str | Task
     return db_task
 
 
-def get_all_tasks(db: Session) -> list[TaskModel]:
-    return db.query(TaskModel).all()
+def get_all_tasks(db: Session, user: User) -> list[TaskModel]:
+    return db.query(TaskModel).filter(TaskModel.user_id == user.id).all()
 
 
-def get_task_by_id(task_id: int, db: Session):
-    task = db.get(TaskModel, task_id)
-    if not task:
+def get_task_by_id(task_id: int, db: Session, user: User):
+    task = _get_user_task(task_id, db, user)
+    if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
         )
@@ -36,10 +48,10 @@ def get_task_by_id(task_id: int, db: Session):
     return task
 
 
-def update_task(task_id: int, requestBody: TaskSchemaDTO, db: Session):
-    task = db.get(TaskModel, task_id)
+def update_task(task_id: int, requestBody: TaskSchemaDTO, db: Session, user: User):
+    task = _get_user_task(task_id, db, user)
 
-    if not task:
+    if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found"
         )
@@ -52,10 +64,10 @@ def update_task(task_id: int, requestBody: TaskSchemaDTO, db: Session):
     return task
 
 
-def delete_task_by_id(task_id: int, db: Session):
-    task = db.get(TaskModel, task_id)
+def delete_task_by_id(task_id: int, db: Session, user: User):
+    task = _get_user_task(task_id, db, user)
 
-    if not task:
+    if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found"
         )
