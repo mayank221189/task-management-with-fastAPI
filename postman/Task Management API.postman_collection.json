@@ -1,0 +1,581 @@
+{
+  "info": {
+    "_postman_id": "f0b2f6d2-8d4e-4e16-9f4d-6a1a56f85c11",
+    "name": "Task Management API",
+    "description": "Requests for user registration, login, authentication, and task CRUD. Log in first to populate the JWT used by authenticated requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "Authorization",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "JWT {{token}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "deletionRequestId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Taylor\",\n  \"last_name\": \"Example\",\n  \"username\": \"taylor@example\",\n  \"password\": \"change-me\",\n  \"email\": \"taylor@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "register"
+              ]
+            },
+            "description": "Creates a user and returns the user profile. Use a unique username and email."
+          },
+          "response": []
+        },
+        {
+          "name": "Log in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeds', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Response contains a token', function () {",
+                  "        pm.expect(response.token).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('token', response.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"taylor@example\",\n  \"password\": \"change-me\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            },
+            "description": "Authenticates a user and saves the returned token to the collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Check current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/is-auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "is-auth"
+              ]
+            },
+            "description": "Returns the profile for the authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "List roles (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "roles"
+              ]
+            },
+            "description": "Lists the built-in roles. Requires an administrator JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "List users (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "users"
+              ]
+            },
+            "description": "Lists users and their role/manager assignments. Requires an administrator JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "Assign role and manager (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"member\",\n  \"manager_id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/users/{{userId}}/access",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "users",
+                "{{userId}}",
+                "access"
+              ]
+            },
+            "description": "Assigns an existing built-in role and, optionally, one manager. Set manager_id to null to unassign a manager. Requires an administrator JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Task is created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const task = pm.response.json();",
+                  "    pm.test('Response contains a task ID', function () {",
+                  "        pm.expect(task.id).to.exist;",
+                  "    });",
+                  "    if (task.id !== undefined) {",
+                  "        pm.collectionVariables.set('taskId', String(task.id));",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Prepare release\",\n  \"description\": \"Review and publish the next version\",\n  \"is_completed\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "create"
+              ]
+            },
+            "description": "Creates a task for the authenticated user and saves its ID for the other task requests."
+          },
+          "response": []
+        },
+        {
+          "name": "List my tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/all-tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "all-tasks"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/task/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "task",
+                "{{taskId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Prepare release\",\n  \"description\": \"Review, test, and publish the next version\",\n  \"is_completed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/task/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "task",
+                "{{taskId}}"
+              ]
+            },
+            "description": "Replaces the task fields. Provide title, description, and is_completed."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/task/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "task",
+                "{{taskId}}"
+              ]
+            },
+            "description": "Administrator-only direct deletion. Members and managers must submit a deletion request instead."
+          },
+          "response": []
+        },
+        {
+          "name": "Request task deletion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Deletion request is created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const request = pm.response.json();",
+                  "    if (request.id !== undefined) {",
+                  "        pm.collectionVariables.set('deletionRequestId', String(request.id));",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"This task is no longer needed.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/task/{{taskId}}/deletion-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "task",
+                "{{taskId}}",
+                "deletion-requests"
+              ]
+            },
+            "description": "Creates a review request for a task assigned to the current member or manager."
+          },
+          "response": []
+        },
+        {
+          "name": "List pending deletion requests (manager/admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/deletion-requests?status=pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "deletion-requests"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            },
+            "description": "Managers see requests from their direct reports. Administrators see requests from users with no manager."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve deletion (manager/admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve_delete\",\n  \"note\": \"Approved after review.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/deletion-requests/{{deletionRequestId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "deletion-requests",
+                "{{deletionRequestId}}",
+                "decision"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject deletion (manager/admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reject\",\n  \"note\": \"Keep this task active.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/deletion-requests/{{deletionRequestId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "deletion-requests",
+                "{{deletionRequestId}}",
+                "decision"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reassign task (manager/admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reassign\",\n  \"assignee_id\": 3,\n  \"note\": \"Reassigned to the next owner.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/deletion-requests/{{deletionRequestId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "deletion-requests",
+                "{{deletionRequestId}}",
+                "decision"
+              ]
+            },
+            "description": "Managers may reassign to another active member they manage. Administrators may reassign to any active member."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
