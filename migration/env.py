@@ -3,8 +3,15 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+# These imports register model tables with Base.metadata for Alembic.
+import src.tasks.task_models as _task_models  # pyright: ignore[reportUnusedImport]
+import src.user.user_models as _user_models  # pyright: ignore[reportUnusedImport]
 from src.utils.db import Base
 from src.utils.settings import settings
+
+# Fail early if models use metadata Alembic will not compare.
+assert _task_models.Base.metadata is Base.metadata
+assert _user_models.Base.metadata is Base.metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
