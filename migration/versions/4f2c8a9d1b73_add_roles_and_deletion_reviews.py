@@ -270,6 +270,7 @@ def upgrade() -> None:
         index["name"] for index in _inspector().get_indexes("task_deletion_requests")
     }
     if "uq_task_deletion_requests_pending_task" not in indexes:
+        # Keep migration tests on SQLite consistent with the production PostgreSQL index.
         op.create_index(
             "uq_task_deletion_requests_pending_task",
             "task_deletion_requests",
